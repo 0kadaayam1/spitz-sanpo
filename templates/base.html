@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}スピッツさんぽ{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+    <style>
+        /* 🔵 背景：お散歩の青空をイメージした、ごく薄い爽やかなブルー */
+        body {
+            background-color: #f0f7ff;
+            color: #334e68;
+            /* 文字色も少し柔らかいネイビーに */
+        }
+
+        /* 💛 アクセント：ボタンやポイントに使う優しいひだまりイエロー */
+        .btn-primary {
+            background-color: #4ba3e3 !important;
+            border-color: #4ba3e3 !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #388ecf !important;
+        }
+
+        /* お散歩記録ボタンなどは楽しい黄色に！ */
+        .btn-success {
+            background-color: #f7d070 !important;
+            border-color: #f7d070 !important;
+            color: #5c4308 !important;
+            font-weight: bold;
+        }
+
+        .btn-success:hover {
+            background-color: #e5be5c !important;
+        }
+
+        /* 枠線やカードの影も優しく */
+        .card {
+            border: none !important;
+            border-radius: 12px !important;
+        }
+
+        .jumbotron {
+            border-radius: 16px !important;
+            background-color: #ffffff !important;
+            /* 真っ白にしてコントラストを出す */
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        {% block header %}
+        {% include 'snippets/header.html' %}
+        {% endblock %}
+    </header>
+
+    {% include 'snippets/messages.html' %}
+
+    <main>
+        {% block main %}
+        {% endblock %}
+    </main>
+
+    <footer class="text-center py-4 text-muted">
+        {% block footer %}
+        {% include 'snippets/footer.html' %}
+        {% endblock %}
+    </footer>
+
+</body>
+
+</html>

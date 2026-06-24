@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5 text-center">
+    <div class="jumbotron bg-light p-5 rounded mb-4 shadow-sm">
+        <h1 class="display-4 font-weight-bold">スピッツ散歩へようこそ！</h1>
+        <p class="lead mt-3">愛犬との毎日の歩みを、楽しく記録して思い出に残しましょう。🐾</p>
+        <hr class="my-4">
+
+        {% if user.is_authenticated %}
+        <p class="text-muted">いつもお散歩お疲れ様です、<strong>{{ user.username }}</strong> さん！</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a class="btn btn-primary btn-lg px-4 shadow" href="/profile/" role="button">プロフィール設定</a>
+            <a class="btn btn-success btn-lg px-4 shadow" href="/walk-log/add/" role="button">🐾 お散歩を記録する</a>
+        </div>
+        {% else %}
+        <p>お散歩の記録をつけるには、ログインまたは新規登録をしてください。</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a class="btn btn-primary btn-lg px-4" href="/login/" role="button">ログイン</a>
+            <a class="btn btn-outline-primary btn-lg px-4" href="/signup/" role="button">新規登録</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="row mt-5 text-start">
+        <div class="col-md-5 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold mb-3">📅 最近のお散歩ログ</h5>
+
+                    {% if walk_logs %}
+                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                            {% for log in walk_logs %}
+                                <div class="list-group-item px-0 py-3 border-bottom">
+                                    <div class="mb-1">
+                                        <span class="font-weight-bold" style="color: #4ba3e3;">
+                                            {{ log.date|date:"Y/m/d" }}（{{ log.get_time_of_day_display }}）
+                                        </span>
+                                    </div>
+
+                                    <p class="mb-2 text-dark small" style="white-space: pre-wrap;">
+                                        {% if log.note %}{{ log.note }}{% else %}（メモなし）{% endif %}
+                                    </p>
+
+                                    {% if log.walk_image %}
+                                        <div class="mb-1">
+                                            <img src="{{ log.walk_image.url }}" alt="お散歩写真" class="img-fluid rounded" style="max-height: 120px; object-fit: cover;">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="text-right mt-3">
+                            <a href="/walk-log/" class="btn btn-sm btn-outline-primary" style="color: #4ba3e3; border-color: #4ba3e3;">すべての履歴を見る 🐾</a>
+                        </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <p class="mb-2">まだお散歩の記録がありません。</p>
+                        <p class="small">上の「🐾 お散歩を記録する」ボタンから、最初の一歩を記録してみましょう！</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold mb-3">💬 スピッツ仲間のタイムライン</h5>
+
+                    {% if timeline_logs %}
+                        <div style="max-height: 480px; overflow-y: auto;">
+                            {% for log in timeline_logs %}
+                                <div class="d-flex border-bottom py-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-info text-white rounded-circle text-center font-weight-bold"
+                                             style="width: 40px; height: 40px; line-height: 40px; font-size: 14px;">
+                                            {{ log.user.username|slice:":1"|upper }}
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3" style="padding-left: 10px;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="font-weight-bold text-dark">{{ log.user.username }}</span>
+                                            <small class="text-muted">{{ log.created_at|date:"m/d H:i" }}</small>
+                                        </div>
+                                        <div class="my-1">
+                                            <span class="badge badge-light text-secondary border">
+                                                📅 {{ log.date|date:"Y/m/d" }}（{{ log.get_time_of_day_display }}）
+                                            </span>
+                                        </div>
+                                        <p class="mb-2 text-secondary small" style="white-space: pre-wrap;">{{ log.note|default:"（メモなしで歩きました🐾）" }}</p>
+                                        
+                                        {% if log.walk_image %}
+                                            <div class="mt-2">
+                                                <img src="{{ log.walk_image.url }}" alt="タイムライン写真" class="img-fluid rounded" style="max-height: 180px; object-fit: cover;">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <p>まだ誰も投稿していません。最初につぶやいてみましょう！</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

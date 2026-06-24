@@ -1,0 +1,10 @@
+secrets
+venv
+.vscode
+__pycache__
+*.pyc
+.DS_Store
+.env
+media_local
+db.sqlite3
+media

@@ -1,0 +1,43 @@
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success-custom{% elif message.tags == 'error' %}alert-danger-custom{% else %}alert-info-custom{% endif %} alert-dismissible fade show shadow-sm border-0"
+        role="alert" style="border-radius: 10px;">
+
+        <div class="d-flex align-items-center">
+            <span class="mr-2" style="font-size: 1.25rem;">
+                {% if message.tags == 'success' %}🐾{% elif message.tags == 'error' %}⚠️{% else %}💡{% endif %}
+            </span>
+            <div>
+                {{ message.message }}
+            </div>
+        </div>
+
+        <button type="button" class="close text-secondary" data-dismiss="alert" aria-label="Close"
+            style="outline: none;">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    /* 成功時：優しいライトグリーン */
+    .alert-success-custom {
+        background-color: #e6f7ed !important;
+        color: #1e5236 !important;
+    }
+
+    /* エラー時：優しいパステルレッド */
+    .alert-danger-custom {
+        background-color: #fde8e8 !important;
+        color: #7a2020 !important;
+    }
+
+    /* その他通知：優しいパステルブルー */
+    .alert-info-custom {
+        background-color: #e8f4fd !important;
+        color: #204b7a !important;
+    }
+</style>
+{% endif %}

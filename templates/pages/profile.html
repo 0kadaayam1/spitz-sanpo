@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="mb-4">スピッツ・プロフィール設定</h1>
+
+            {% if form.instance.dog_image %}
+                <div class="text-center mb-4">
+                    <img src="{{ form.instance.dog_image.url }}" alt="ワンちゃんの写真" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    入力内容にエラーがあります。確認してください。
+                </div>
+                {% endif %}
+
+                {% for field in form %}
+                <div class="form-group mb-3">
+                    <label class="form-label font-weight-bold">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="text-danger small">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4">保存する</button>
+                    <a href="/account/" class="btn btn-outline-secondary ms-2">戻る</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

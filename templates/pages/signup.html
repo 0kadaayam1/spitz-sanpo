@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5" style="max-width: 500px;">
+    <h2 class="mb-4 text-center">新規会員登録</h2>
+    <form method="POST" action="{% url 'signup' %}">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="alert alert-danger">入力内容を確認してください。</div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="form-group mb-3">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="text-danger small">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success w-100 mt-3">アカウントを作成する</button>
+    </form>
+    <div class="text-center mt-3">
+        <a href="{% url 'login' %}" class="small">すでにアカウントをお持ちの方（ログイン）</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+
+            <div class="card shadow-sm p-4 bg-white">
+                <h1 class="h3 font-weight-bold mb-4 text-center">アカウント設定</h1>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-group mb-3">
+                        <label class="font-weight-bold">ユーザー名</label>
+                        <input class="form-control" type="text" name="username" placeholder="ユーザー名を入力" value="{{ user.username }}">
+                        <small class="text-muted">アプリ内で表示されるあなたの名前です。</small>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="font-weight-bold">メールアドレス</label>
+                        <input class="form-control" type="email" name="email" placeholder="example@email.com"
+                            value="{{ user.email }}" required>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">変更を保存する</button>
+                        <a href="/" class="btn btn-outline-secondary px-4 ml-2">戻る</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
