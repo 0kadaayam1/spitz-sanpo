@@ -24,6 +24,36 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    path('shop-post/<int:pk>/like/', views.toggle_shop_post_like, name='toggle_shop_post_like'),
+    path('shop-post/<int:pk>/comment/', views.add_shop_post_comment, name='add_shop_post_comment'),
+
+    path('shop-post/<int:pk>/edit/', views.ShopPostEditView.as_view(), name='shop_post_edit'),
+    path('shop-post/<int:pk>/delete/', views.ShopPostDeleteView.as_view(), name='shop_post_delete'),
+
+    path('shop/profile/edit/', views.ShopProfileEditView.as_view(), name='shop_profile_edit'),
+
+    path('shop/add/', views.ShopPostCreateView.as_view(), name='shop_post_add'),
+
+    path('shop/my-posts/', views.ShopMyPostListView.as_view(), name='shop_my_posts'),
+
+    path('shop/', views.ShopTimelineView.as_view(), name='shop_timeline'),
+
+    path('comment/<int:pk>/like/', views.toggle_comment_like, name='toggle_comment_like'),
+
+    path('notifications/', views.notification_list, name='notification_list'),
+
+    path('walk-log/<int:pk>/comment/', views.add_comment, name='add_comment'),
+
+    path('walk-log/<int:pk>/like/', views.toggle_like, name='toggle_like'),
+
+    path('shop/<int:user_id>/follow/', views.toggle_shop_follow, name='toggle_shop_follow'),
+
+    path('user/<str:username>/follow/', views.toggle_follow, name='toggle_follow'),
+
+    path('shop/<int:user_id>/', views.ShopAgentTimelineView.as_view(), name='shop_agent_timeline'),
+
+    path('user/<str:username>/', views.UserTimelineView.as_view(), name='user_timeline'),
+
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html', email_template_name='registration/password_reset_email.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),

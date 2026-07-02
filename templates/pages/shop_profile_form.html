@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card shadow-sm border-0 bg-white">
+        <div class="card-body p-4">
+            <h1 class="h4 font-weight-bold mb-4 text-center" style="color: #007bff;">
+                🏪 店舗プロフィールの設定
+            </h1>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="text-center mb-4">
+                    <label class="font-weight-bold text-dark small d-block text-left mb-2">店舗画像</label>
+                    {% if form.instance.shop_image %}
+                        <img src="{{ form.instance.shop_image.url }}" alt="店舗写真" 
+                             class="rounded-circle img-thumbnail shadow-sm mb-3" 
+                             style="width: 130px; height: 130px; object-fit: cover;">
+                    {% endif %}
+                    <div class="custom-file text-left">
+                        {{ form.shop_image }}
+                    </div>
+                </div>
+
+                {% for field in form %}
+                    {% if field.name != 'shop_image' %}
+                    <div class="form-group mb-3">
+                        <label for="{{ field.id_for_label }}" class="font-weight-bold text-dark small mb-1">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a href="{% url 'shop_my_posts' %}" class="btn btn-light me-md-2">戻る</a>
+                    <button type="submit" class="btn btn-success px-4 shadow-sm">設定を保存する 💾</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

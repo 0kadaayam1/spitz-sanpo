@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5">
+    <div class="card shadow-sm border-0 bg-white p-4 mb-4 text-center">
+        <div class="d-flex flex-column align-items-center">
+            {% if target_user.profile.dog_image %}
+                <img src="{{ target_user.profile.dog_image.url }}" alt="プロフィール写真" class="rounded-circle shadow-sm mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+            {% else %}
+                <div class="bg-info text-white rounded-circle text-center font-weight-bold mb-3" style="width: 100px; height: 100px; line-height: 100px; font-size: 32px;">
+                    {{ target_user.username|slice:":1"|upper }}
+                </div>
+            {% endif %}
+            
+            <h2 class="font-weight-bold mb-1">{{ target_user.username }} さんの記録</h2>
+            
+            {% if target_user.profile.dog_name %}
+                <p class="text-muted mt-2">🐾 愛犬: <strong>{{ target_user.profile.dog_name }}</strong> ちゃん</p>
+            {% endif %}
+
+            <div class="d-flex justify-content-center gap-4 my-3">
+                <div>
+                    <strong class="h5">{{ target_user.profile.following.count }}</strong>
+                    <span class="text-muted small">フォロー</span>
+                </div>
+                <div>
+                    <strong class="h5">{{ target_user.profile.followers.count }}</strong>
+                    <span class="text-muted small">フォロワー</span>
+                </div>
+            </div>
+
+            {% if user.is_authenticated and user != target_user %}
+            <form action="{% url 'toggle_follow' username=target_user.username %}" method="post" class="mt-2">
+                {% csrf_token %}
+                {% if target_user.profile in user.profile.following.all %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary px-4 rounded-pill">
+                        🤝 フォロー解除
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-sm btn-success px-4 rounded-pill shadow-sm">
+                        👤 フォローする
+                    </button>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            {% if not target_user.profile.is_private or user == target_user or target_user.profile in user.profile.following.all %}
+                
+                <h4 class="font-weight-bold mb-4">📝 お散歩ログ一覧（全 {{ logs|length }} 件）</h4>
+
+                {% if logs %}
+                    {% for log in logs %}
+                    <div class="card shadow-sm mb-3 border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge badge-light text-secondary border px-3 py-2">
+                                    📅 {{ log.date|date:"Y/m/d" }}（{{ log.get_time_of_day_display }}）
+                                </span>
+                                <small class="text-muted">{{ log.created_at|date:"m/d H:i" }}</small>
+                            </div>
+
+                            <p class="text-dark my-3" style="white-space: pre-wrap;">{{ log.note|default:"（メモなしで歩きました🐾）" }}</p>
+
+                            {% if log.walk_image %}
+                            <div class="text-center bg-light rounded p-2">
+                                <img src="{{ log.walk_image.url }}" alt="お散歩写真" class="img-fluid rounded" style="max-height: 300px; object-fit: cover;">
+                            </div>
+                            {% endif %}
+
+                            <div class="mt-3 d-flex align-items-center mb-3">
+                                <form action="{% url 'toggle_like' pk=log.pk %}" method="post" class="me-2">
+                                    {% csrf_token %}
+                                    {% if user in log.likes.all %}
+                                        <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none p-0">
+                                            <span style="font-size: 16px;">❤️</span>
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-link text-muted text-decoration-none p-0">
+                                            <span style="font-size: 16px;">🖤</span>
+                                        </button>
+                                    {% endif %}
+                                </form>
+                                <small class="text-muted" style="padding-left: 5px;">
+                                    {{ log.likes.count }} 件のいいね
+                                </small>
+
+                                <small class="text-muted ms-3" style="padding-left: 10px;">
+                                    💬 {{ log.comments.count }} 件のコメント
+                                </small>
+                            </div>
+
+                            <div class="mt-3 border-top pt-3">
+                                {% if log.comments.all %}
+                                <div class="bg-light rounded p-2 mb-2 small">
+                                    {% for comment in log.comments.all %}
+                                    <div class="mb-1 text-dark">
+                                        <strong class="text-secondary">{{ comment.user.username }}</strong>: 
+                                        <span>{{ comment.text }}</span>
+                                        <span class="text-muted" style="font-size: 10px; float: right;">{{ comment.created_at|date:"m/d H:i" }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <form action="{% url 'add_comment' pk=log.pk %}" method="post" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <input type="text" name="text" class="form-control form-control-sm rounded-pill border-secondary-subtle px-3" placeholder="コメントを残す...🐾" required>
+                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 text-nowrap" style="font-size: 13px; min-width: 60px;">送信</button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="card shadow-sm p-5 text-center text-muted">
+                        <p>まだお散歩の記録がありません。</p>
+                    </div>
+                {% endif %}
+
+            {% else %}
+                <div class="card shadow-sm border-0 p-5 text-center my-4 bg-light rounded">
+                    <div class="mb-3" style="font-size: 48px;">🔒</div>
+                    <h5 class="font-weight-bold text-dark mb-2">このアカウントは非公開です</h5>
+                    <p class="text-muted small mb-0">
+                        このユーザーのお散歩ログを見るには、フォローして承認される必要があります。<br>
+                        （※現在はフォローボタンを押すだけで自動で一覧が表示されるようになります🐾）
+                    </p>
+                </div>
+            {% endif %}
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-outline-secondary px-4">トップページへ戻る</a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

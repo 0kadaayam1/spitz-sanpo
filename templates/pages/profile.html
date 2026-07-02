@@ -23,16 +23,32 @@
                 {% endif %}
 
                 {% for field in form %}
-                <div class="form-group mb-3">
-                    <label class="form-label font-weight-bold">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% if field.name == 'is_private' %}
+                        <div class="form-group mb-4 text-start card p-3 bg-light border-0">
+                            <div class="form-check form-switch d-flex align-items-center ps-0">
+                                <input type="checkbox" name="is_private" id="{{ field.id_for_label }}" class="form-check-input ms-0 me-2" style="cursor: pointer;" {% if field.value %}checked{% endif %}>
+                                
+                                <label class="form-check-label font-weight-bold text-dark" for="{{ field.id_for_label }}" style="cursor: pointer;">
+                                    🔒 アカウントを非公開にする（鍵垢）
+                                </label>
+                            </div>
+                            <small class="text-muted mt-2 d-block ms-1">
+                                ONにすると、あなたをフォローしていないユーザーからお散歩ログの一覧が見えなくなります。
+                            </small>
+                        </div>
+                    
+                    {% else %}
+                        <div class="form-group mb-3 text-start">
+                            <label class="form-label font-weight-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted d-block">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <p class="text-danger small mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
                     {% endif %}
-                    {% for error in field.errors %}
-                    <p class="text-danger small">{{ error }}</p>
-                    {% endfor %}
-                </div>
                 {% endfor %}
 
                 <div class="mt-4">

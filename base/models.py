@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 
 
@@ -36,13 +37,14 @@ class User(AbstractBaseUser):
     email = models.EmailField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    is_shop = models.BooleanField(default=False, verbose_name="お店ユーザー")
     objects = UserManager()
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email', ]
 
     def __str__(self):
-        return self.email
+        return self.username
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -91,6 +93,20 @@ class Profile(models.Model):
         verbose_name="ワンちゃんの写真"
     )
 
+    following = models.ManyToManyField(
+        'self', 
+        symmetrical=False,  # 自分がフォローしても相手から自動でフォローし返されない関係を作るためのDjangoフレームワーク
+        related_name='followers', 
+        blank=True, 
+        verbose_name="フォロー中"
+        )
+
+    # BooleanField → True か False の2択のデータを保存する項目。初期値(default)を False にしておくと公開アカウントになる。
+    is_private = models.BooleanField(
+        default=False, 
+        verbose_name="アカウントを非公開にする（鍵垢）"
+        )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -133,5 +149,118 @@ class WalkLog(models.Model):
     # データが作成された日時を自動記録
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # 誰がこの投稿にいいねしたかを記録する項目
+    likes = models.ManyToManyField(User, related_name='liked_logs', blank=True, verbose_name="いいねしたユーザー")
+
     def __html__(self):
         return f"{self.date} ({self.get_time_of_day_display()}) - {self.user.username}"
+
+class Comment(models.Model):
+    # 📝 1. どのお散歩ログに対するコメントか（お散歩ログが消えたら、コメントも連動して消える）
+    walk_log = models.ForeignKey(WalkLog, on_delete=models.CASCADE, related_name='comments', verbose_name="対象のお散歩ログ")
+    
+    # 👤 2. 誰がコメントしたか（ユーザーが消えたら、その人のコメントも消える）
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="コメントした人")
+    
+    # 💬 3. コメント本文
+    text = models.TextField(verbose_name="コメント内容")
+    
+    # 📅 4. 書き込まれた日時（新しい順に並べるため自動記録）
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="書き込み日時")
+
+    likes = models.ManyToManyField(User, related_name='liked_comments', blank=True, verbose_name="コメントへのいいね")
+
+    class Meta:
+        ordering = ['created_at']  # コメントは古い順（会話が流れる順番）で並ぶようにします
+
+    def __str__(self):
+        return f"{self.user.username} - {self.text[:10]}"
+
+class Notification(models.Model):
+    # 通知の種類を定義（コメント、返信、いいね などに拡張できるようにします）
+    NOTIFICATION_CHOICES = [
+        ('comment', 'コメント'),
+        ('like', 'いいね'),
+    ]
+
+    # 👤 1. 誰宛ての通知か（投稿の持ち主）
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', verbose_name="通知を受け取るユーザー")
+    
+    # 👤 2. 誰がアクションしたか（コメントした人）
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications', verbose_name="アクションしたユーザー")
+    
+    # 🐾 3. どのお散歩ログに対するアクションか
+    walk_log = models.ForeignKey(WalkLog, on_delete=models.CASCADE, blank=True, null=True, verbose_name="対象のお散歩ログ")
+    
+    # 📝 4. コメントそのものへの紐付け（どのコメントか特定するため）
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, blank=True, null=True, verbose_name="対象のコメント")
+    
+    # 🏷️ 5. 通知の種類（デフォルトはコメント）
+    notification_type = models.CharField(max_length=10, choices=NOTIFICATION_CHOICES)
+    
+    # 👀 6. 読んだかどうか（Xの通知タブを開いたら既読にする用）
+    is_read = models.BooleanField(default=False, verbose_name="既読フラグ")
+    
+    # 📅 7. 通知が届いた日時
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="通知日時")
+
+    class Meta:
+        ordering = ['-created_at']  # 新しい通知が一番上にくるようにします
+
+    def __str__(self):
+        return f"{self.sender.username} から {self.user.username} への通知 ({self.get_notification_type_display()})"
+
+class ShopPost(models.Model):
+    """お店のアカウントからの投稿・お知らせモデル"""
+    # 🎯 'User' 直指定から 'settings.AUTH_USER_MODEL' に変更します
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shop_posts', verbose_name="お店ユーザー")
+    title = models.CharField(max_length=100, verbose_name="タイトル")
+    content = models.TextField(verbose_name="内容")
+    image = models.ImageField(upload_to='shop_posts/', blank=True, null=True, verbose_name="画像")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="投稿日時")
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+class ShopProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shop_profile')
+    shop_name = models.CharField(max_length=100, verbose_name="店舗名")
+    # 📷 お店のプロフィール写真を追加（犬と同様にデフォルト画像を設定しておくと便利です）
+    shop_image = models.ImageField(upload_to='shop_images/', blank=True, null=True, verbose_name="店舗画像", default='shop_images/default_shop.png')
+    description = models.TextField(verbose_name="お店の紹介文", blank=True, null=True)
+    hours = models.CharField(max_length=100, verbose_name="営業時間")
+    website_url = models.URLField(verbose_name="ホームページURL", blank=True, null=True)
+    location = models.CharField(max_length=255, verbose_name="場所・住所")
+    
+    # 🗺️ Googleマップの埋め込みコード（<iframe>タグ）をそのまま保存できる欄
+    map_iframe = models.TextField(verbose_name="Googleマップ埋め込みコード", blank=True, null=True, 
+                                   help_text="Googleマップの『地図を埋め込む』から取得した<iframe>タグをそのまま貼り付けてください。")
+
+    def __str__(self):
+        return self.name
+
+class ShopPostLike(models.Model):
+    """お店のお知らせに対するいいねモデル"""
+    shop_post = models.ForeignKey(ShopPost, on_delete=models.CASCADE, related_name='likes_received', verbose_name="対象のお知らせ")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="いいねしたユーザー")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('shop_post', 'user') # 同じ人が1つの投稿に何度もいいねできないようにする
+
+
+class ShopPostComment(models.Model):
+    """お店のお知らせに対するコメントモデル"""
+    shop_post = models.ForeignKey(ShopPost, on_delete=models.CASCADE, related_name='comments_received', verbose_name="対象のお知らせ")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="コメントしたユーザー")
+    text = models.TextField(verbose_name="コメント内容")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="書き込み日時")
+
+    class Meta:
+        ordering = ['created_at'] # コメントは古い順（会話の流れ順）
+
+    def __str__(self):
+        return f"{self.user.username} - {self.text[:10]}"

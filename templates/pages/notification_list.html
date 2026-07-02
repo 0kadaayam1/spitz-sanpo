@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <h4 class="font-weight-bold mb-4">🔔 通知一覧</h4>
+
+            {% if notifications %}
+                <div class="card shadow-sm border-0">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <div class="list-group-item p-3 border-bottom d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 mr-3">
+                                    <a href="{% url 'user_timeline' username=notification.sender.username %}">
+                                        {% if notification.sender.profile.dog_image %}
+                                            <img src="{{ notification.sender.profile.dog_image.url }}" alt="アイコン"
+                                                 class="rounded-circle shadow-sm"
+                                                 style="width: 42px; height: 42px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-info text-white rounded-circle text-center font-weight-bold"
+                                                 style="width: 42px; height: 42px; line-height: 42px; font-size: 14px;">
+                                                {{ notification.sender.username|slice:":1"|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </a>
+                                </div>
+
+                                <div class="flex-grow-1">
+                                    <div>
+                                        <a href="{% url 'user_timeline' username=notification.sender.username %}" class="text-decoration-none font-weight-bold text-dark mr-1">
+                                            {{ notification.sender.username }}
+                                        </a>
+                                        <!-- 🎯 ここで通知タイプ（いいね or コメント）を出し分けます -->
+                                        {% if notification.notification_type == 'like' %}
+                                            <span class="text-secondary small">さんがあなたのコメントに<span class="text-danger font-weight-bold">いいね</span>しました！<span class="text-danger font-weight-bold">❤️</span></span>
+                                        {% else %}
+                                            <span class="text-secondary small">さんがあなたのお散歩ログにコメントしました。💬</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if notification.comment %}
+                                    <div class="mt-1 text-muted small bg-light p-2 rounded" style="font-style: italic;">
+                                        "{{ notification.comment.text|truncatechars:30 }}"
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="text-right">
+                                <span class="text-muted d-block mb-1" style="font-size: 11px;">{{ notification.created_at|date:"m/d H:i" }}</span>
+                                {% if notification.walk_log %}
+                                <a href="{% url 'user_timeline' username=user.username %}" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-3" style="font-size: 11px;">
+                                    ログを見る 🐾
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm p-5 text-center text-muted">
+                    <div class="mb-3" style="font-size: 48px;">🍃</div>
+                    <p class="mb-0">まだ通知はありません。</p>
+                    <p class="small text-muted">スピッツ仲間からリアクションがつくと、ここに届きます！</p>
+                </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-outline-secondary px-4">トップページへ戻る</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

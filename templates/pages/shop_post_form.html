@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card shadow-sm border-0 bg-white">
+        <div class="card-body p-4">
+            <h1 class="h4 font-weight-bold mb-4 text-center" style="color: #007bff;">
+                📝 お知らせの編集
+            </h1>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    入力内容を確認してください。
+                </div>
+                {% endif %}
+
+                <div class="form-group mb-3">
+                    <label for="id_title" class="font-weight-bold text-dark small mb-1">タイトル</label>
+                    <input type="text" name="title" id="id_title" 
+                           class="form-control {% if form.title.errors %}is-invalid{% endif %}" 
+                           value="{{ form.title.value|default_if_none:'' }}" required>
+                    {% for error in form.title.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="id_content" class="font-weight-bold text-dark small mb-1">内容（本文）</label>
+                    <textarea name="content" id="id_content" rows="6" 
+                              class="form-control {% if form.content.errors %}is-invalid{% endif %}" 
+                              required>{{ form.content.value|default_if_none:'' }}</textarea>
+                    {% for error in form.content.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="id_image" class="font-weight-bold text-dark small mb-1">画像（任意）</label>
+                    {% if form.instance.image %}
+                    <div class="mb-2 small text-muted">
+                        現在登録されている画像:<br>
+                        <img src="{{ form.instance.image.url }}" class="img-fluid rounded mt-1 mb-2" style="max-height: 100px;">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="image" id="id_image" 
+                           class="form-control-file d-block {% if form.image.errors %}is-invalid{% endif %}">
+                    {% for error in form.image.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a href="{% url 'shop_my_posts' %}" class="btn btn-light me-md-2">キャンセル</a>
+                    <button type="submit" class="btn btn-success px-4 shadow-sm">変更を保存する 💾</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

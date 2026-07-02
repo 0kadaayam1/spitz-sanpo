@@ -9,27 +9,65 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto ml-auto">
+            <ul class="navbar-nav ms-auto ml-auto align-items-center"> 
                 {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="/">ホーム</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="/profile/">プロフィール設定</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="/account/">アカウント</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-danger font-weight-bold" href="/logout/">ログアウト</a>
-                </li>
+                    <!-- 🔔 通知ボタン（共通） -->
+                    <li class="nav-item position-relative mr-3">
+                        <a class="nav-link text-dark p-1" href="{% url 'notification_list' %}" style="font-size: 18px;" title="通知">
+                            🔔
+                            {% if unread_notifications_count > 0 %}
+                            <span class="badge badge-danger position-absolute" 
+                                  style="top: -2px; right: -8px; font-size: 10px; padding: 3px 6px; border-radius: 50%;">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+
+                    <!-- 🏠 ホームリンク（共通） -->
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/">ホーム</a>
+                    </li>
+
+                    {% if user.is_shop %}
+                        <!-- 🏪 お店アカウント専用メニュー -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark " href="{% url 'shop_profile_edit' %}">🏪お店プロフィール設定</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="{% url 'shop_post_add' %}">📢お知らせ投稿</a>
+                        </li>
+                    {% else %}
+                        <!-- 🐾 一般ユーザー（スピッツ）専用メニュー -->
+                         <li class="nav-item">
+                            <a class="nav-link text-dark " href="{% url 'walk_log_add' %}">📝お散歩を記録</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/profile/">プロフィール設定</a>
+                        </li>
+                    {% endif %}
+
+                    <!-- 🎪 お店情報（共通：お店一覧やタイムライン） -->
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="{% url 'shop_timeline' %}">🎪お店情報</a>
+                    </li>
+                    
+                    <!-- ⚙️ アカウント設定 & 🚪 ログアウト（共通） -->
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/account/">アカウント</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger font-weight-bold" href="/logout/">ログアウト</a>
+                    </li>
+
                 {% else %}
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="/login/">ログイン</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link btn btn-outline-dark btn-sm px-3 ml-2" href="/signup/">新規登録</a>
-                </li>
+                    <!-- 🔒 ログインしていない場合 -->
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/login/">ログイン</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-dark btn-sm px-3 ml-2" href="/signup/">新規登録</a>
+                    </li>
                 {% endif %}
             </ul>
         </div>

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5">
+    <h1 class="h3 font-weight-bold text-center mb-4">🐾 お店情報・お知らせタイムライン</h1>
+
+    {% if shop_posts %}
+    <div class="row justify-content-center">
+        {% for post in shop_posts %}
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-body">
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <a href="{% url 'shop_agent_timeline' post.user.pk %}" class="text-decoration-none">
+                            {% if post.user.shop_profile.shop_image %}
+                                <img src="{{ post.user.shop_profile.shop_image.url }}" alt="店舗アイコン" 
+                                     class="rounded-circle mr-3 shadow-sm border" 
+                                     style="width: 45px; height: 45px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mr-3 border text-center font-weight-bold" 
+                                     style="width: 45px; height: 45px; font-size: 18px; line-height: 45px;">
+                                    🏪
+                                </div>
+                            {% endif %}
+                        </a>
+                        
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <h6 class="font-weight-bold mb-0">
+                                    <a href="{% url 'shop_agent_timeline' post.user.pk %}" class="text-dark text-decoration-none">
+                                        {% if post.user.shop_profile.shop_name %}{{ post.user.shop_profile.shop_name }}{% else %}{{ post.user.username }}{% endif %}
+                                    </a>
+                                    <span class="badge badge-primary ml-1" style="font-size: 11px;">お店</span>
+                                </h6>
+
+                            </div>
+                            <small class="text-muted d-block mt-0">{{ post.created_at|date:"Y年m月d日 H:i" }}</small>
+                        </div>
+                    </div>
+
+                    <h5 class="font-weight-bold text-dark mb-2">📣 {{ post.title }}</h5>
+                    <p class="card-text text-secondary" style="white-space: pre-wrap;">{{ post.content }}</p>
+
+                    {% if post.image %}
+                    <div class="mt-3 text-center bg-light rounded overflow-hidden">
+                        <img src="{{ post.image.url }}" alt="お知らせ画像" class="img-fluid" style="max-height: 400px; object-fit: cover;">
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-3 pt-2 border-top d-flex align-items-center">
+                        <form action="{% url 'toggle_shop_post_like' post.pk %}" method="POST" class="d-inline mr-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link p-0 text-decoration-none font-weight-bold" style="font-size: 15px;">
+                                {% if post.is_liked %}
+                                    <span class="text-danger">❤️ いいね！</span>
+                                {% else %}
+                                    <span class="text-secondary">🖤 いいね！</span>
+                                {% endif %}
+                                <span class="badge badge-light border ml-1 text-dark">{{ post.likes_received.count }}</span>
+                            </button>
+                        </form>
+                        <span class="text-muted small">
+                            💬 コメント <span class="badge badge-light border ml-1 text-dark">{{ post.comments_received.count }}</span>
+                        </span>
+                    </div>
+
+                    <div class="mt-3 p-3 bg-light rounded" style="font-size: 14px;">
+                        <h6 class="font-weight-bold text-muted mb-2" style="font-size: 13px;">コメント一覧</h6>
+                        {% if post.comments_received.all %}
+                            <div class="comment-list" style="max-height: 200px; overflow-y: auto;">
+                                {% for comment in post.comments_received.all %}
+                                <div class="border-bottom py-2">
+                                    <div class="d-flex justify-content-between text-muted small mb-1">
+                                        <strong>👤 {{ comment.user.username }}</strong>
+                                        <span>{{ comment.created_at|date:"m/d H:i" }}</span>
+                                    </div>
+                                    <p class="mb-0 text-dark" style="white-space: pre-wrap;">{{ comment.text }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0 small">まだコメントはありません。最初の一言をどうぞ！</p>
+                        {% endif %}
+
+                        <form action="{% url 'add_shop_post_comment' post.pk %}" method="POST" class="mt-3">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" name="text" class="form-control form-control-sm" placeholder="お店へのメッセージを入力..." required style="border-radius: 20px 0 0 20px;">
+                                <div class="input-group-append">
+                                    <button class="btn btn-sm btn-primary px-3" type="submit" style="border-radius: 0 20px 20px 0;">送信 🚀</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-sm p-5 text-center bg-white mx-auto" style="max-width: 600px;">
+        <p class="text-muted mb-0">現在、お店からのお知らせはありません。🐾</p>
+    </div>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="/" class="text-secondary">トップページに戻る</a>
+    </div>
+</div>
+{% endblock %}
