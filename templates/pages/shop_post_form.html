@@ -27,6 +27,15 @@
                     {% endfor %}
                 </div>
 
+                <!-- 🏷️ 追加：カテゴリ選択プルダウン -->
+                <div class="form-group mb-3">
+                    <label for="id_category" class="font-weight-bold text-dark small mb-1">カテゴリ</label>
+                    {{ form.category }}
+                    {% for error in form.category.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
                 <div class="form-group mb-3">
                     <label for="id_content" class="font-weight-bold text-dark small mb-1">内容（本文）</label>
                     <textarea name="content" id="id_content" rows="6" 

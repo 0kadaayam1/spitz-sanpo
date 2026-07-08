@@ -25,6 +25,16 @@
             <a href="{% url 'password_reset' %}" class="text-muted small">パスワードを忘れた方はこちら 🔑</a>
         </div>
     </form>
+
+    <hr class="my-4">
+    <div class="text-center bg-light p-3 rounded" style="border: 1px dashed #ced4da;">
+        <p class="small text-secondary mb-2 font-weight-bold">🏪 加盟店舗の皆さまへ</p>
+        <a href="{% url 'shop_login' %}" class="btn btn-sm btn-outline-primary font-weight-bold px-4"
+            style="border-radius: 20px; font-size: 13px;">
+            お店アカウント専用ログインはこちら
+        </a>
+    </div>
+    
     <div class="text-center mt-3">
         <a href="{% url 'signup' %}" class="small">はじめてご利用の方（新規登録）</a>
     </div>

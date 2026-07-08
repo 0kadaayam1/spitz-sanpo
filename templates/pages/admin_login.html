@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="font-weight-bold text-danger">スピッツさんぽ</h2>
+                        <p class="text-muted small">運営・管理者専用ログイン</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} small" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="small font-weight-bold">管理者ユーザー名</label>
+                            <input type="text" name="username" class="form-control" placeholder="ユーザー名を入力" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="small font-weight-bold">パスワード</label>
+                            <input type="password" name="password" class="form-control" placeholder="パスワードを入力" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-block font-weight-bold py-2 shadow-sm">
+                            管理者ログイン
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

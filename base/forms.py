@@ -70,12 +70,21 @@ from .models import ShopProfile
 class ShopProfileForm(forms.ModelForm):
     class Meta:
         model = ShopProfile
-        # 🎯 モデルに実際に存在する正しいフィールド名 ＋ shop_image を指定します
-        fields = ('shop_name', 'shop_image', 'description', 'hours', 'website_url', 'location', 'map_iframe')
+        # 🎯 古い 'hours' を削除し、新しい時間と定休日のフィールド（計9個）を追加しました！
+        fields = (
+            'shop_name', 'shop_image', 'description', 
+            'open_time', 'close_time',
+            'is_closed_mon', 'is_closed_tue', 'is_closed_wed', 'is_closed_thu', 'is_closed_fri', 'is_closed_sat', 'is_closed_sun',
+            'website_url', 'location', 'map_iframe',
+            'has_dog_run', 'allows_large_dogs', 'has_parking', 'pets_allowed'
+        )
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'お店の雰囲気や、看板犬の紹介などを自由に書いてください🐾'}),
             'map_iframe': forms.Textarea(attrs={'rows': 3, 'placeholder': '<iframe src="..." ...></iframe>'}),
             'shop_image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            # 🕒 開店・閉店時間をブラウザ標準の「時間選択プルダウン（または時計入力）」にします
+            'open_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'close_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs) :
@@ -84,6 +93,9 @@ class ShopProfileForm(forms.ModelForm):
             # 画像フィールドだけBootstrapのform-control除外（レイアウト崩れ防止）
             if field_name == 'shop_image':
                 field.widget.attrs['class'] = 'form-control-file'
+            # 🏷️ 特徴タグや定休日のチェックボックス（BooleanField）は、綺麗に横並びにするため共通のクラスをあてます
+            elif isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-check-input'
             else:
                 field.widget.attrs['class'] = 'form-control'
 
@@ -91,9 +103,12 @@ class ShopProfileForm(forms.ModelForm):
 class ShopPostForm(forms.ModelForm):
     class Meta:
         model = ShopPost
-        fields = ('title', 'content', 'image')
+        # 🎯 fields に 'category' を追加しました！
+        fields = ('title', 'category', 'content', 'image')
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'タイトルを入力'}),
+            # 🏷️ カテゴリをプルダウン（セレクトボックス）形式で表示します
+            'category': forms.Select(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'お知らせの本文を入力してください🐾'}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }

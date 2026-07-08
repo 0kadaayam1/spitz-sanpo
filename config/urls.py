@@ -74,6 +74,17 @@ urlpatterns = [
     path('account/', views.AccountUpdateView.as_view(), name='account'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'), # 👈これが今回作ったスピッツ用画面！
 
+    # 👑 管理者専用機能
+    path('admin-login/', views.AdminLoginView.as_view(), name='admin_login'),
+    path('admin-dashboard/', views.AdminDashboardView.as_view(), name='admin_dashboard'),
+    path('admin-user/<int:pk>/delete/', views.AdminUserDeleteView.as_view(), name='admin_user_delete'),
+    path('admin-walk-log/<int:pk>/delete/', views.AdminWalkLogDeleteView.as_view(), name='admin_walk_log_delete'),
+    path('admin-shop-post/<int:pk>/delete/', views.AdminShopPostDeleteView.as_view(), name='admin_shop_post_delete'),
+
+    # 🏪 お店アカウント専用機能
+    path('shop-login/', views.ShopLoginView.as_view(), name='shop_login'),
+    path('shop-dashboard/', views.ShopDashboardView.as_view(), name='shop_dashboard'),
+
 ]
 
 if settings.DEBUG:

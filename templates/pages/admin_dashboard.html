@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container-fluid my-5 px-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <div>
+            <h2 class="font-weight-bold text-dark mb-1">運営管理ダッシュボード</h2>
+            <p class="text-muted mb-0">ユーザー管理および不適切な投稿の監視・削除を行えます。</p>
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <span class="badge badge-danger p-2 font-weight-bold">管理者: {{ request.user.username }}</span>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show small" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="box" aria-label="Close" onclick="this.parentElement.style.display='none';">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- 🗂️ 切り替えタブ -->
+    <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active font-weight-bold text-secondary" id="users-tab" data-toggle="tab" href="#users" role="tab">👤 ユーザー管理 ({{ all_users.count }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-secondary" id="walk-logs-tab" data-toggle="tab" href="#walk-logs" role="tab">🐾 お散歩ログ管理 ({{ all_walk_logs.count }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link font-weight-bold text-secondary" id="shop-posts-tab" data-toggle="tab" href="#shop-posts" role="tab">🏪 お店のお知らせ管理 ({{ all_shop_posts.count }})</a>
+        </li>
+    </ul>
+
+    <div class="tab-content bg-white p-4 shadow-sm rounded" id="adminTabContent">
+        
+        <!-- 👥 タブ1：ユーザー管理 -->
+        <div class="tab-pane fade show active" id="users" role="tabpanel">
+            <h4 class="font-weight-bold text-dark mb-3">全登録ユーザー一覧</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>ユーザー名</th>
+                            <th>メールアドレス</th>
+                            <th>アカウント種別</th>
+                            <th>登録日時</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in all_users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td><strong>{{ u.username }}</strong></td>
+                            <td>{{ u.email|default:"-(未設定)-" }}</td>
+                            <td>
+                                {% if u.is_superuser %}
+                                    <span class="badge badge-dark">最高管理者</span>
+                                {% elif u.is_staff %}
+                                    <span class="badge badge-danger">管理者</span>
+                                {% elif u.is_shop %}
+                                    <span class="badge badge-primary">お店アカウント</span>
+                                {% else %}
+                                    <span class="badge badge-success">一般ユーザー</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ u.date_joined|date:"Y/m/d H:i" }}</td>
+                            <td class="text-center">
+                                {% if u != request.user and not u.is_superuser %}
+                                    <a href="{% url 'admin_user_delete' u.pk %}" class="btn btn-sm btn-outline-danger font-weight-bold py-1 px-3" style="border-radius: 15px;">
+                                        アカウント削除
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">削除不可</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🐾 タブ2：お散歩ログ管理 -->
+        <div class="tab-pane fade" id="walk-logs" role="tabpanel">
+            <h4 class="font-weight-bold text-dark mb-3">一般お散歩ログ一覧</h4>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>投稿者</th>
+                            <th>本文（抜粋）</th>
+                            <th>画像</th>
+                            <th>投稿日時</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in all_walk_logs %}
+                        <tr>
+                            <td><strong>{{ log.user.username }}</strong></td>
+                            <td><div class="text-truncate" style="max-width: 350px;">{{ log.description }}</div></td>
+                            <td>
+                                {% if log.image %}
+                                    <a href="{{ log.image.url }}" target="_blank" class="small text-info">あり（確認）</a>
+                                {% else %}
+                                    <span class="text-muted small">なし</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ log.created_at|date:"Y/m/d H:i" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'admin_walk_log_delete' log.pk %}" class="btn btn-sm btn-danger font-weight-bold py-1 px-3" style="border-radius: 15px;">
+                                    強制削除
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted">お散歩ログはまだありません。</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🏪 タブ3：お店のお知らせ管理 -->
+        <div class="tab-pane fade" id="shop-posts" role="tabpanel">
+            <h4 class="font-weight-bold text-dark mb-3">お店のお知らせ一覧</h4>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>お店アカウント</th>
+                            <th>タイトル / 本文</th>
+                            <th>告知画像</th>
+                            <th>投稿日時</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in all_shop_posts %}
+                        <tr>
+                            <td><strong>{{ post.user.username }}</strong></td>
+                            <td>
+                                <div class="font-weight-bold" style="font-size: 14px;">{{ post.title }}</div>
+                                <div class="text-muted text-truncate small" style="max-width: 350px;">{{ post.content }}</div>
+                            </td>
+                            <td>
+                                {% if post.image %}
+                                    <a href="{{ post.image.url }}" target="_blank" class="small text-info">あり（確認）</a>
+                                {% else %}
+                                    <span class="text-muted small">なし</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ post.created_at|date:"Y/m/d H:i" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'admin_shop_post_delete' post.pk %}" class="btn btn-sm btn-danger font-weight-bold py-1 px-3" style="border-radius: 15px;">
+                                    強制削除
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted">お店のお知らせはまだありません。</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 💡 Bootstrapのタブを正しく動作させるための簡易スクリプト -->
+<script>
+    document.querySelectorAll('#adminTab a').forEach(function(element) {
+        element.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('#adminTab a').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('show', 'active'));
+            
+            this.classList.add('active');
+            const targetId = this.getAttribute('href');
+            document.querySelector(targetId).classList.add('show', 'active');
+        });
+    });
+</script>
+{% endblock %}

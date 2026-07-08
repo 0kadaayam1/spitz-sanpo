@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <div>
+            <h2 class="font-weight-bold text-dark mb-1">🏪 お店管理画面</h2>
+            <p class="text-muted mb-0"><strong>{{ request.user.username }}</strong> さんの管理ページです。お散歩中のみなさんへのお知らせを発信・管理できます。</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success small" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- 左側：メニューやクイックアクション -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h5 class="font-weight-bold text-dark mb-3">クイック操作</h5>
+                    <!-- 💡 今後、お店のお知らせ新規投稿ページなどができたらここにリンクを貼ります -->
+                     <a href="{% url 'shop_post_add' %}" class="btn btn-primary btn-block font-weight-bold mb-2 py-2 shadow-sm" style="border-radius: 15px;">
+                        ＋ 新しいお知らせを投稿
+                    </a>
+                    <a href="{% url 'shop_profile_edit' %}" class="btn btn-outline-secondary btn-block font-weight-bold small py-2" style="border-radius: 15px;">
+                        店舗プロフィールの編集
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：投稿したお知らせ一覧 -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="font-weight-bold text-dark mb-3">現在掲載中のお知らせ ({{ my_posts.count }})</h5>
+                    
+                    {% for post in my_posts %}
+                        <div class="media border-bottom py-3">
+                            {% if post.image %}
+                                <img src="{{ post.image.url }}" class="mr-3 rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                            {% endif %}
+                            <div class="media-body">
+                                <h6 class="mt-0 font-weight-bold text-dark">{{ post.title }}</h6>
+                                <p class="text-muted small mb-1 text-truncate-2" style="max-width: 500px;">{{ post.content }}</p>
+                                <span class="text-muted font-weight-light" style="font-size: 11px;">投稿日時: {{ post.created_at|date:"Y/m/d H:i" }}</span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5 text-muted">
+                            <p class="mb-0">まだお知らせは投稿されていません。</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

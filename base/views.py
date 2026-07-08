@@ -97,9 +97,17 @@ class TopView(TemplateView):
                     user=user
                 ).order_by('-date', '-created_at')[:5]
 
-        # 📅 タイムラインの取得（鍵垢の制限を含む既存のロジック）
+                # 🏪 【今回追加：フォロー中のお店のお知らせを取得】
+                # 自分がフォローしているProfile（お店含む）のリストを取得
+                my_following_profiles = user.profile.following.all()
+                
+                # フォローしているアカウントが投稿したお店のお知らせ（ShopPost）を最新順に10件取得
+                context['followed_shop_posts'] = ShopPost.objects.filter(
+                    user__profile__in=my_following_profiles
+                ).select_related('user').order_by('-created_at')[:10]
+
+        # 📅 タイムラインの取得（既存のロジック：スピッツ仲間たちのタイムライン）
         if user.is_authenticated:
-            # 🟢 ログイン中：①公開垢、②自分の投稿、③フォロー中の投稿 のどれかに当てはまるものだけ
             my_profile = user.profile
             context['timeline_logs'] = WalkLog.objects.filter(
                 Q(user__profile__is_private=False) |
@@ -108,7 +116,6 @@ class TopView(TemplateView):
             ).select_related('user').distinct().order_by('-created_at')[:10]
             
         else:
-            # 🟡 ログアウト中：一般公開（is_private=False）の投稿だけ
             context['timeline_logs'] = WalkLog.objects.filter(
                 user__profile__is_private=False
             ).select_related('user').order_by('-created_at')[:10]
@@ -322,8 +329,8 @@ class ShopPostCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('shop_my_posts')
 
     def form_valid(self, form):
-        # 🔗 ログイン中ユーザーのお店プロフィールを自動でセットする
-        form.instance.shop = self.request.user.shop_profile
+        # 🔗 ログイン中のユーザーを投稿者としてセットする
+        form.instance.user = self.request.user
         return super().form_valid(form)
 
 class ShopProfileEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -346,8 +353,8 @@ class ShopProfileEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             # 💡 もし無ければ、実際のモデルのフィールド名「shop_name」に合わせて安全に作成
             return ShopProfile.objects.create(
                 user=self.request.user,
-                name=self.request.user.username,  # 初期値としてユーザー名をセット
-                location="未設定"                 # 初期値として未設定をセット
+                shop_name=self.request.user.username,  # 👈 'shop_name' に修正
+                location="未設定"                      # ※もしこれでもエラーが出る場合は、この行を消すか適切なフィールド名に変えてみてください
             )
 
 class ShopMyPostListView(LoginRequiredMixin, ListView):
@@ -479,4 +486,112 @@ class ShopAgentTimelineView(LoginRequiredMixin, ListView):
             follower_count = Profile.objects.filter(following=shop_profile).count()
             
         context['follower_count'] = follower_count
+        return context
+
+class AdminLoginView(LoginView):
+    """管理者専用のログイン画面"""
+    template_name = 'pages/admin_login.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.user.is_staff:
+            messages.success(self.request, '管理者としてログインしました。')
+            return redirect('admin_dashboard')
+        else:
+            django_logout(self.request)
+            messages.error(self.request, '管理者権限がありません。')
+            return redirect('admin_login')
+
+
+class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """管理者用トップページ（全ユーザー・全お散歩ログ・全お店の投稿を管理）"""
+    template_name = 'pages/admin_dashboard.html'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # 👤 全ユーザーを登録の新しい順（IDの大きい順）に取得するように修正！
+        context['all_users'] = User.objects.all().order_by('-id')
+        
+        # 🐾 全員のお散歩ログを取得
+        context['all_walk_logs'] = WalkLog.objects.all().order_by('-created_at')
+        # 🏪 全てのお店のお知らせ（投稿）を取得
+        context['all_shop_posts'] = ShopPost.objects.all().order_by('-created_at')
+        return context
+
+
+class AdminUserDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """管理者によるユーザー（一般・お店両方）の強制削除"""
+    model = User
+    template_name = 'pages/admin_confirm_delete.html'
+    success_url = reverse_lazy('admin_dashboard')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        messages.success(self.request, f"ユーザー「{user.username}」を強制削除しました。")
+        return super().delete(request, *args, **kwargs)
+
+
+class AdminWalkLogDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """管理者によるお散歩ログの強制削除"""
+    model = WalkLog
+    template_name = 'pages/admin_confirm_delete.html'
+    success_url = reverse_lazy('admin_dashboard')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "不適切な一般投稿を削除しました。")
+        return super().delete(request, *args, **kwargs)
+
+
+class AdminShopPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """管理者によるお店のお知らせ（投稿）の強制削除 👈 【ここを新設！】"""
+    model = ShopPost
+    template_name = 'pages/admin_confirm_delete.html'
+    success_url = reverse_lazy('admin_dashboard')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "不適切なお店のお知らせを削除しました。")
+        return super().delete(request, *args, **kwargs)
+
+class ShopLoginView(LoginView):
+    """お店アカウント専用のログイン画面"""
+    template_name = 'pages/shop_login.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # ログインしたユーザーにお店フラグ（is_shop）があるかチェック
+        if self.request.user.is_shop:
+            messages.success(self.request, 'お店アカウントとしてログインしました。')
+            return redirect('shop_dashboard')
+        else:
+            # お店アカウントではない（一般ユーザーなど）場合は即ログアウトさせて弾く
+            django_logout(self.request)
+            messages.error(self.request, 'この画面はお店アカウント専用です。一般ユーザーはご利用いただけません。')
+            return redirect('shop_login')
+
+
+class ShopDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """お店専用の管理トップページ（自分のお店のお知らせなどを管理する場所）"""
+    template_name = 'pages/shop_dashboard.html'
+
+    def test_func(self):
+        # お店フラグを持っているユーザーのみアクセスを許可
+        return self.request.user.is_shop
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 自分のお店が投稿したお知らせだけを最新順に取得
+        context['my_posts'] = ShopPost.objects.filter(user=self.request.user).order_by('-created_at')
         return context

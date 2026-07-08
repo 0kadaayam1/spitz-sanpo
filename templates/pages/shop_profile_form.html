@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block main %}
-<div class="container my-5" style="max-width: 600px;">
+<div class="container my-5" style="max-width: 650px;">
     <div class="card shadow-sm border-0 bg-white">
         <div class="card-body p-4">
             <h1 class="h4 font-weight-bold mb-4 text-center" style="color: #007bff;">
@@ -11,6 +11,7 @@
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
+                <!-- 📸 店舗画像エリア -->
                 <div class="text-center mb-4">
                     <label class="font-weight-bold text-dark small d-block text-left mb-2">店舗画像</label>
                     {% if form.instance.shop_image %}
@@ -23,20 +24,105 @@
                     </div>
                 </div>
 
-                {% for field in form %}
-                    {% if field.name != 'shop_image' %}
-                    <div class="form-group mb-3">
-                        <label for="{{ field.id_for_label }}" class="font-weight-bold text-dark small mb-1">
-                            {{ field.label }}
-                        </label>
-                        {{ field }}
-                        {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                {% endfor %}
+                <!-- 📝 基本情報：店舗名、説明文 -->
+                <div class="form-group mb-3">
+                    <label for="{{ form.shop_name.id_for_label }}" class="font-weight-bold text-dark small mb-1">{{ form.shop_name.label }}</label>
+                    {{ form.shop_name }}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="font-weight-bold text-dark small mb-1">{{ form.description.label }}</label>
+                    {{ form.description }}
+                </div>
 
+                <!-- 🕒 営業時間エリア（2カラムで横並び） -->
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label for="{{ form.open_time.id_for_label }}" class="font-weight-bold text-dark small mb-1">開店時間 ☀️</label>
+                        {{ form.open_time }}
+                    </div>
+                    <div class="col-6">
+                        <label for="{{ form.close_time.id_for_label }}" class="font-weight-bold text-dark small mb-1">閉店時間 🌙</label>
+                        {{ form.close_time }}
+                    </div>
+                </div>
+
+                <!-- 🗓️ 定休日エリア（曜日を横並びにしてスッキリ！） -->
+                <div class="mb-4 p-3 bg-light rounded">
+                    <label class="font-weight-bold text-dark small d-block mb-2">定休日（お休みの曜日を選択してください）</label>
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="form-check form-check-inline m-0 mr-3">
+                            {{ form.is_closed_mon }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_mon.id_for_label }}">月</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0 mr-3">
+                            {{ form.is_closed_tue }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_tue.id_for_label }}">火</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0 mr-3">
+                            {{ form.is_closed_wed }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_wed.id_for_label }}">水</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0 mr-3">
+                            {{ form.is_closed_thu }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_thu.id_for_label }}">木</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0 mr-3">
+                            {{ form.is_closed_fri }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_fri.id_for_label }}">金</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0 mr-3">
+                            {{ form.is_closed_sat }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_sat.id_for_label }}">土</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0">
+                            {{ form.is_closed_sun }} <label class="form-check-label small font-weight-bold ml-1" for="{{ form.is_closed_sun.id_for_label }}">日</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📍 アクセス情報：URL、住所、マップ -->
+                <div class="form-group mb-3">
+                    <label for="{{ form.website_url.id_for_label }}" class="font-weight-bold text-dark small mb-1">{{ form.website_url.label }}</label>
+                    {{ form.website_url }}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.location.id_for_label }}" class="font-weight-bold text-dark small mb-1">{{ form.location.label }}</label>
+                    {{ form.location }}
+                </div>
+                <div class="form-group mb-4">
+                    <label for="{{ form.map_iframe.id_for_label }}" class="font-weight-bold text-dark small mb-1">{{ form.map_iframe.label }}</label>
+                    {{ form.map_iframe }}
+                    {% if form.map_iframe.help_text %}
+                        <small class="form-text text-muted">{{ form.map_iframe.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- 🏷️ お店の特徴タグ（2カラムで綺麗に配置） -->
+                <div class="mb-4 p-3 border rounded" style="border-color: #ced4da !important;">
+                    <label class="font-weight-bold text-dark small d-block mb-2" style="color: #007bff !important;">🏷️ お店の特徴タグ設定</label>
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <div class="form-check">
+                                {{ form.has_dog_run }}
+                                <label class="form-check-label small font-weight-bold ml-1" for="{{ form.has_dog_run.id_for_label }}">{{ form.has_dog_run.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="form-check">
+                                {{ form.allows_large_dogs }}
+                                <label class="form-check-label small font-weight-bold ml-1" for="{{ form.allows_large_dogs.id_for_label }}">{{ form.allows_large_dogs.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check">
+                                {{ form.has_parking }}
+                                <label class="form-check-label small font-weight-bold ml-1" for="{{ form.has_parking.id_for_label }}">{{ form.has_parking.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check">
+                                {{ form.pets_allowed }}
+                                <label class="form-check-label small font-weight-bold ml-1" for="{{ form.pets_allowed.id_for_label }}">{{ form.pets_allowed.label }}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 💾 ボタンエリア -->
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                     <a href="{% url 'shop_my_posts' %}" class="btn btn-light me-md-2">戻る</a>
                     <button type="submit" class="btn btn-success px-4 shadow-sm">設定を保存する 💾</button>

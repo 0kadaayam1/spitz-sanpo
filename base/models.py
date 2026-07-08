@@ -212,9 +212,25 @@ class Notification(models.Model):
 
 class ShopPost(models.Model):
     """お店のアカウントからの投稿・お知らせモデル"""
-    # 🎯 'User' 直指定から 'settings.AUTH_USER_MODEL' に変更します
+    
+    # 🏷️ カテゴリの選択肢を定義（文字数を抑えるために英語のキー、表示用に日本語をセット）
+    CATEGORY_CHOICES = [
+        ('news', 'お知らせ'),
+        ('coupon', 'クーポン'),
+        ('event', 'イベント'),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shop_posts', verbose_name="お店ユーザー")
     title = models.CharField(max_length=100, verbose_name="タイトル")
+    
+    # ★追加：カテゴリフィールド
+    category = models.CharField(
+        max_length=10, 
+        choices=CATEGORY_CHOICES, 
+        default='news', 
+        verbose_name="カテゴリ"
+    )
+    
     content = models.TextField(verbose_name="内容")
     image = models.ImageField(upload_to='shop_posts/', blank=True, null=True, verbose_name="画像")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="投稿日時")
@@ -223,24 +239,41 @@ class ShopPost(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.title}"
+        return f"[{self.get_category_display()}] {self.user.username} - {self.title}"
 
 class ShopProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shop_profile')
     shop_name = models.CharField(max_length=100, verbose_name="店舗名")
-    # 📷 お店のプロフィール写真を追加（犬と同様にデフォルト画像を設定しておくと便利です）
     shop_image = models.ImageField(upload_to='shop_images/', blank=True, null=True, verbose_name="店舗画像", default='shop_images/default_shop.png')
     description = models.TextField(verbose_name="お店の紹介文", blank=True, null=True)
-    hours = models.CharField(max_length=100, verbose_name="営業時間")
+    
+    # 🕒 営業時間（手入力を廃止し、個別のデータとして保存します）
+    open_time = models.TimeField(verbose_name="開店時間", null=True, blank=True)
+    close_time = models.TimeField(verbose_name="閉店時間", null=True, blank=True)
+    
+    # 🗓️ 定休日（曜日ごとのチェックボックス用。Trueならその曜日が休み）
+    is_closed_mon = models.BooleanField(default=False, verbose_name="定休日：月曜日")
+    is_closed_tue = models.BooleanField(default=False, verbose_name="定休日：火曜日")
+    is_closed_wed = models.BooleanField(default=False, verbose_name="定休日：水曜日")
+    is_closed_thu = models.BooleanField(default=False, verbose_name="定休日：木曜日")
+    is_closed_fri = models.BooleanField(default=False, verbose_name="定休日：金曜日")
+    is_closed_sat = models.BooleanField(default=False, verbose_name="定休日：土曜日")
+    is_closed_sun = models.BooleanField(default=False, verbose_name="定休日：日曜日")
+
     website_url = models.URLField(verbose_name="ホームページURL", blank=True, null=True)
     location = models.CharField(max_length=255, verbose_name="場所・住所")
     
-    # 🗺️ Googleマップの埋め込みコード（<iframe>タグ）をそのまま保存できる欄
     map_iframe = models.TextField(verbose_name="Googleマップ埋め込みコード", blank=True, null=True, 
                                    help_text="Googleマップの『地図を埋め込む』から取得した<iframe>タグをそのまま貼り付けてください。")
 
+    # 🏷️ お店の特徴タグ
+    has_dog_run = models.BooleanField(default=False, verbose_name="ドッグランあり")
+    allows_large_dogs = models.BooleanField(default=False, verbose_name="大型犬OK")
+    has_parking = models.BooleanField(default=False, verbose_name="駐車場あり")
+    pets_allowed = models.BooleanField(default=False, verbose_name="店内ペット同伴OK")
+
     def __str__(self):
-        return self.name
+        return self.shop_name
 
 class ShopPostLike(models.Model):
     """お店のお知らせに対するいいねモデル"""

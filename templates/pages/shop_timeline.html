@@ -39,7 +39,18 @@
                         </div>
                     </div>
 
-                    <h5 class="font-weight-bold text-dark mb-2">📣 {{ post.title }}</h5>
+                    <h5 class="font-weight-bold text-dark mb-2 d-flex align-items-center">
+                        <!-- 🏷️ カテゴリに応じた色付きバッジの条件分岐 -->
+                        {% if post.category == 'coupon' %}
+                            <span class="badge badge-danger mr-2" style="font-size: 12px; padding: 5px 8px;">🎫 クーポン</span>
+                        {% elif post.category == 'event' %}
+                            <span class="badge badge-warning text-dark mr-2" style="font-size: 12px; padding: 5px 8px;">🎪 イベント</span>
+                        {% else %}
+                            <span class="badge badge-secondary mr-2" style="font-size: 12px; padding: 5px 8px;">📣 お知らせ</span>
+                        {% endif %}
+                        
+                        {{ post.title }}
+                    </h5>
                     <p class="card-text text-secondary" style="white-space: pre-wrap;">{{ post.content }}</p>
 
                     {% if post.image %}
