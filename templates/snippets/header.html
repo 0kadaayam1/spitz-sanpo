@@ -30,7 +30,9 @@
                     </li>
 
                     {% if user.is_shop %}
-                        <!-- 🏪 お店アカウント専用メニュー -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="{% url 'shop_dashboard' %}">🏪店舗ダッシュボード</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark " href="{% url 'shop_profile_edit' %}">🏪お店プロフィール設定</a>
                         </li>
